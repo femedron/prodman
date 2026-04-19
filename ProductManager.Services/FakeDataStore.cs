@@ -4,11 +4,17 @@ using ProductManager.Models.Enums;
 namespace ProductManager.Services;
 
 /// <summary>
-/// Static fake data store that acts as the in-memory database.
+/// Static fake data store that acts as the in-memory "database" for Lab 1.
 /// 
 /// Access is intentionally internal so that only <see cref="WarehouseRepository"/>
 /// can read or modify data — external code must go through the service layer.
 /// 
+/// Seed data rules (per lab spec):
+///   • ≥ 3 warehouse instances with different locations
+///   • ≥ 12 product instances:
+///       - ≥ 10 products belonging to the SAME warehouse ("Центральний склад")
+///       - ≥ 2 products belonging to a DIFFERENT warehouse ("Склад №2 Львів")
+///   • Third warehouse intentionally has no products (edge-case testing)
 /// </summary>
 internal static class FakeDataStore
 {
@@ -21,7 +27,7 @@ internal static class FakeDataStore
     internal static readonly List<WarehouseModel> Warehouses = new()
     {
         new WarehouseModel(CentralWarehouseId,       "Центральний склад",  WarehouseLocation.Kyiv),
-        new WarehouseModel(LvivWarehouseId,           "Склад #2 Львів",    WarehouseLocation.Lviv),
+        new WarehouseModel(LvivWarehouseId,           "Склад №2 Львів",    WarehouseLocation.Lviv),
         new WarehouseModel(ZaporizhzhiaWarehouseId,   "Регіональний склад", WarehouseLocation.Zaporizhzhia),
     };
 

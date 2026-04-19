@@ -1,12 +1,18 @@
 using ProductManager.Models;
+using ProductManager.Services.Abstractions;
 using ProductManager.ViewModels;
 
 namespace ProductManager.Services;
 
 /// <summary>
-/// Service responsible for all interactions with the data store.
+/// Concrete implementation of <see cref="IWarehouseRepository"/> backed by
+/// the in-memory <see cref="FakeDataStore"/>.
+/// 
+/// Registered in the DI container as the implementation of IWarehouseRepository.
+/// In later labs this can be swapped for a database-backed implementation
+/// without touching any consumer code (Open/Closed Principle).
 /// </summary>
-public class WarehouseRepository
+public class WarehouseRepository : IWarehouseRepository
 {
     // ── Warehouse operations ──────────────────────────────────────────────────
 
@@ -19,6 +25,9 @@ public class WarehouseRepository
             .Select(WarehouseViewModel.FromModel)
             .ToList();
 
+    /// <summary>
+    /// Returns a single warehouse view-model by its ID, or null if not found.
+    /// </summary>
     public WarehouseViewModel? GetWarehouseById(Guid id)
     {
         var model = FakeDataStore.Warehouses.FirstOrDefault(w => w.Id == id);
@@ -45,12 +54,19 @@ public class WarehouseRepository
         warehouse.ProductsLoaded = true;
     }
 
+    /// <summary>
+    /// Returns all products that belong to the given warehouse as view-models.
+    /// Does NOT attach them to a WarehouseViewModel.
+    /// </summary>
     public List<ProductViewModel> GetProductsByWarehouse(Guid warehouseId)
         => FakeDataStore.Products
             .Where(p => p.WarehouseId == warehouseId)
             .Select(ProductViewModel.FromModel)
             .ToList();
 
+    /// <summary>
+    /// Returns a single product view-model by its ID, or null if not found.
+    /// </summary>
     public ProductViewModel? GetProductById(Guid id)
     {
         var model = FakeDataStore.Products.FirstOrDefault(p => p.Id == id);

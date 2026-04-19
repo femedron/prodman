@@ -1,0 +1,199 @@
+<Page x:Class="ProductManager.WpfApp.Views.WarehouseDetailPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Деталі складу">
+
+    <Grid Margin="28,24">
+        <Grid.RowDefinitions>
+            <!-- Back button + title -->
+            <RowDefinition Height="Auto"/>
+            <!-- Warehouse info card -->
+            <RowDefinition Height="Auto"/>
+            <!-- Products section title -->
+            <RowDefinition Height="Auto"/>
+            <!-- Product list -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Back button + page title ───────────────────────────── -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Content="← Назад"
+                    Command="{Binding GoBackCommand}"
+                    Style="{StaticResource OutlineButtonStyle}"
+                    VerticalAlignment="Center"
+                    Margin="0,0,16,0"/>
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding Warehouse.Name}"
+                       Style="{StaticResource PageTitleStyle}"
+                       VerticalAlignment="Center"
+                       Margin="0"/>
+        </Grid>
+
+        <!-- ── Warehouse info card ─────────────────────────────────── -->
+        <Border Grid.Row="1"
+                Style="{StaticResource CardStyle}"
+                Margin="0,0,0,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ID -->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="ІДЕНТИФІКАТОР" Style="{StaticResource LabelStyle}"/>
+                    <TextBlock Text="{Binding Warehouse.Id}"
+                               Style="{StaticResource ValueStyle}"
+                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <!-- Location -->
+                <StackPanel Grid.Column="1" Margin="16,0">
+                    <TextBlock Text="ЛОКАЦІЯ" Style="{StaticResource LabelStyle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Border Style="{StaticResource BadgeStyle}">
+                            <TextBlock Text="{Binding Warehouse.Location}"
+                                       Style="{StaticResource ValueStyle}"
+                                       Foreground="{StaticResource PrimaryBrush}"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Total value -->
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="ЗАГАЛЬНА ВАРТІСТЬ" Style="{StaticResource LabelStyle}"/>
+                    <TextBlock Style="{StaticResource ValueStyle}"
+                               FontSize="20" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryBrush}">
+                        <Run Text="{Binding Warehouse.TotalValue, StringFormat='{}{0:N2}', Mode=OneWay}"/>
+                        <Run Text=" грн"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Section title ──────────────────────────────────────── -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Товари на складі"
+                       Style="{StaticResource SectionTitleStyle}"
+                       Margin="0,0,12,0"/>
+            <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Products.Count}"
+                           Foreground="{StaticResource PrimaryBrush}"
+                           FontWeight="Bold" FontSize="12"/>
+            </Border>
+        </StackPanel>
+
+        <!-- ── Loading indicator ───────────────────────────────────── -->
+        <TextBlock Grid.Row="3"
+                   Text="Завантаження товарів..."
+                   FontSize="14"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Visibility="{Binding IsLoading,
+                                Converter={StaticResource BoolToVisConverter}}"/>
+
+        <!-- ── Empty state ─────────────────────────────────────────── -->
+        <TextBlock Grid.Row="3"
+                   Text="На цьому складі ще немає товарів"
+                   FontSize="14"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsLoading}"  Value="False"/>
+                                <Condition Binding="{Binding Products.Count}" Value="0"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- ── Product list ────────────────────────────────────────── -->
+        <ListBox Grid.Row="3"
+                 ItemsSource="{Binding Products}"
+                 ItemContainerStyle="{StaticResource ListItemStyle}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Visibility="{Binding IsLoading,
+                              Converter={StaticResource InverseBoolToVisConverter}}">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.InputBindings>
+                            <MouseBinding MouseAction="LeftClick"
+                                          Command="{Binding DataContext.OpenProductCommand,
+                                                    RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                          CommandParameter="{Binding}"/>
+                        </Grid.InputBindings>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Name + category badge -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Name}"
+                                       FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <Border Style="{StaticResource BadgeStyle}"
+                                    HorizontalAlignment="Left" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding Category}"
+                                           FontSize="11"
+                                           Foreground="{StaticResource PrimaryBrush}"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Quantity -->
+                        <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                            <TextBlock Text="КІЛЬКІСТЬ" Style="{StaticResource LabelStyle}"/>
+                            <TextBlock FontSize="14" Foreground="{StaticResource TextPrimaryBrush}">
+                                <Run Text="{Binding Quantity}"/>
+                                <Run Text=" шт"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Unit price -->
+                        <StackPanel Grid.Column="2" Margin="16,0" VerticalAlignment="Center">
+                            <TextBlock Text="ЦІНА/ШТ" Style="{StaticResource LabelStyle}"/>
+                            <TextBlock FontSize="14" Foreground="{StaticResource TextPrimaryBrush}">
+                                <Run Text="{Binding UnitPrice, StringFormat='{}{0:N2}'}"/>
+                                <Run Text=" грн"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Total + arrow -->
+                        <StackPanel Grid.Column="3" Margin="16,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="ЗАГАЛОМ" Style="{StaticResource LabelStyle}"/>
+                            <TextBlock FontSize="14" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}">
+                                <Run Text="{Binding TotalValue, StringFormat='{}{0:N2}', Mode=OneWay}"/>
+                                <Run Text=" грн  ›"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Page>
