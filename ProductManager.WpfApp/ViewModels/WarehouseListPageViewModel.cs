@@ -1,37 +1,30 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using ProductManager.Services.Abstractions;
-using ProductManager.ViewModels;
+using ProductManager.Services.Dto;
 using ProductManager.WpfApp.Infrastructure;
 using ProductManager.WpfApp.Views;
 
 namespace ProductManager.WpfApp.ViewModels;
 
 /// <summary>
-/// ViewModel for the warehouse list page.
-/// Loads all warehouses on construction and exposes a command to navigate
-/// to a selected warehouse's detail page.
+/// ViewModel сторінки списку складів.
+/// Взаємодіє виключно з <see cref="IWarehouseService"/> — не знає про репозиторії
+/// або DbModels.
 /// </summary>
 public class WarehouseListPageViewModel : ViewModelBase
 {
-    private readonly IWarehouseRepository _repository;
+    private readonly IWarehouseService _warehouseService;
     private readonly INavigationService _navigation;
-    private readonly Func<WarehouseViewModel, WarehouseDetailPage> _detailPageFactory;
+    private readonly Func<WarehouseDetailDto, WarehouseDetailPage> _detailPageFactory;
 
-    private ObservableCollection<WarehouseViewModel> _warehouses = new();
-    private WarehouseViewModel? _selectedWarehouse;
+    private ObservableCollection<WarehouseListDto> _warehouses = new();
     private bool _isLoading;
 
-    public ObservableCollection<WarehouseViewModel> Warehouses
+    public ObservableCollection<WarehouseListDto> Warehouses
     {
         get => _warehouses;
         private set => SetProperty(ref _warehouses, value);
-    }
-
-    public WarehouseViewModel? SelectedWarehouse
-    {
-        get => _selectedWarehouse;
-        set => SetProperty(ref _selectedWarehouse, value);
     }
 
     public bool IsLoading
@@ -40,28 +33,21 @@ public class WarehouseListPageViewModel : ViewModelBase
         private set => SetProperty(ref _isLoading, value);
     }
 
+    /// <summary>Command: navigate to detail page for the selected warehouse.</summary>
     public ICommand OpenWarehouseCommand { get; }
 
-    /// <summary>
-    /// The <paramref name="detailPageFactory"/> is injected so the ViewModel
-    /// never creates WPF Pages directly — Pages are resolved from the DI container.
-    /// </summary>
     public WarehouseListPageViewModel(
-        IWarehouseRepository repository,
+        IWarehouseService warehouseService,
         INavigationService navigation,
-        Func<WarehouseViewModel, WarehouseDetailPage> detailPageFactory)
+        Func<WarehouseDetailDto, WarehouseDetailPage> detailPageFactory)
     {
-        _repository = repository;
-        _navigation = navigation;
+        _warehouseService  = warehouseService;
+        _navigation        = navigation;
         _detailPageFactory = detailPageFactory;
 
         OpenWarehouseCommand = new RelayCommand(
-            execute: param =>
-            {
-                if (param is WarehouseViewModel vm)
-                    OpenWarehouse(vm);
-            },
-            canExecute: _ => !IsLoading);
+            execute:    param => { if (param is WarehouseListDto dto) OpenWarehouse(dto); },
+            canExecute: _     => !IsLoading);
 
         LoadWarehouses();
     }
@@ -69,14 +55,17 @@ public class WarehouseListPageViewModel : ViewModelBase
     private void LoadWarehouses()
     {
         IsLoading = true;
-        var list = _repository.GetAllWarehouses();
-        Warehouses = new ObservableCollection<WarehouseViewModel>(list);
+        var items = _warehouseService.GetAll();
+        Warehouses = new ObservableCollection<WarehouseListDto>(items);
         IsLoading = false;
     }
 
-    private void OpenWarehouse(WarehouseViewModel warehouse)
+    private void OpenWarehouse(WarehouseListDto listDto)
     {
-        var page = _detailPageFactory(warehouse);
-        _navigation.NavigateTo(page);
+        // Завантажуємо повні деталі складу (разом з товарами) через сервіс.
+        var detail = _warehouseService.GetDetail(listDto.Id);
+        if (detail is null) return;
+
+        _navigation.NavigateTo(_detailPageFactory(detail));
     }
 }

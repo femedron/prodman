@@ -5,7 +5,7 @@ using System.Windows.Data;
 namespace ProductManager.WpfApp.Infrastructure;
 
 /// <summary>
-/// Converts bool → Visibility: true = Visible, false = Collapsed.
+/// Converts bool -> Visibility: true = Visible, false = Collapsed.
 /// Used to show loading indicators.
 /// </summary>
 [ValueConversion(typeof(bool), typeof(Visibility))]

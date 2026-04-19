@@ -6,11 +6,9 @@ using ProductManager.WpfApp.Views;
 namespace ProductManager.WpfApp;
 
 /// <summary>
-/// Code-behind for MainWindow.
-/// Responsibilities:
-///   1. Give the NavigationService a reference to MainFrame after XAML loads.
-///   2. Navigate to the initial WarehouseListPage.
-/// All other logic lives in ViewModels.
+/// Code-behind для MainWindow.
+/// Відповідальність: підключити NavigationService до Frame та відкрити стартову сторінку.
+/// Жодної бізнес-логіки тут немає — вся вона у ViewModels.
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -22,7 +20,6 @@ public partial class MainWindow : Window
         WarehouseListPageViewModel listViewModel)
     {
         InitializeComponent();
-
         _navigationService = navigationService;
         _listViewModel     = listViewModel;
     }
@@ -30,11 +27,7 @@ public partial class MainWindow : Window
     protected override void OnContentRendered(EventArgs e)
     {
         base.OnContentRendered(e);
-
-        // Wire up the Frame now that the XAML tree is fully built.
         _navigationService.SetFrame(MainFrame);
-
-        // Navigate to the first page.
         var listPage = new WarehouseListPage { DataContext = _listViewModel };
         _navigationService.NavigateTo(listPage);
     }

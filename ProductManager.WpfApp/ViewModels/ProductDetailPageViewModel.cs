@@ -1,25 +1,51 @@
 using System.Windows.Input;
-using ProductManager.ViewModels;
+using ProductManager.Services.Abstractions;
+using ProductManager.Services.Dto;
 using ProductManager.WpfApp.Infrastructure;
 
 namespace ProductManager.WpfApp.ViewModels;
 
 /// <summary>
-/// ViewModel for the product detail page.
-/// Receives a <see cref="ProductViewModel"/> and exposes it for display.
+/// ViewModel сторінки деталей товару.
+/// Отримує <see cref="ProductListDto"/> зі списку, після чого завантажує
+/// повні деталі через <see cref="IProductService"/>.
+/// UI знає лише про DTO — не про DbModels.
 /// </summary>
 public class ProductDetailPageViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
 
-    public ProductViewModel Product { get; }
+    private ProductDetailDto? _product;
+    private bool _isLoading;
+
+    public ProductDetailDto? Product
+    {
+        get => _product;
+        private set => SetProperty(ref _product, value);
+    }
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set => SetProperty(ref _isLoading, value);
+    }
 
     public ICommand GoBackCommand { get; }
 
-    public ProductDetailPageViewModel(ProductViewModel product, INavigationService navigation)
+    public ProductDetailPageViewModel(
+        ProductListDto listDto,
+        IProductService productService,
+        INavigationService navigation)
     {
-        Product = product;
         _navigation = navigation;
         GoBackCommand = new RelayCommand(() => _navigation.GoBack());
+        LoadProduct(listDto.Id, productService);
+    }
+
+    private void LoadProduct(Guid id, IProductService productService)
+    {
+        IsLoading = true;
+        Product   = productService.GetDetail(id);
+        IsLoading = false;
     }
 }

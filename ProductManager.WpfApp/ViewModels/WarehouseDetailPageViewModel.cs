@@ -1,74 +1,51 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using ProductManager.Services.Abstractions;
-using ProductManager.ViewModels;
+using ProductManager.Services.Dto;
 using ProductManager.WpfApp.Infrastructure;
 using ProductManager.WpfApp.Views;
 
 namespace ProductManager.WpfApp.ViewModels;
 
 /// <summary>
-/// ViewModel for the warehouse detail page.
-/// Receives a <see cref="WarehouseViewModel"/> from the list page and lazily
-/// loads its products if they haven't been loaded yet.
+/// ViewModel сторінки деталей складу.
+/// Отримує <see cref="WarehouseDetailDto"/> (вже повністю заповнений сервісом)
+/// і надає його для відображення у View.
+/// Не звертається до жодних репозиторіїв або DbModels.
 /// </summary>
 public class WarehouseDetailPageViewModel : ViewModelBase
 {
-    private readonly IWarehouseRepository _repository;
     private readonly INavigationService _navigation;
-    private readonly Func<ProductViewModel, ProductDetailPage> _productDetailPageFactory;
+    private readonly Func<ProductListDto, ProductDetailPageViewModel> _productVmFactory;
 
-    private ObservableCollection<ProductViewModel> _products = new();
-    private bool _isLoading;
+    public WarehouseDetailDto Warehouse { get; }
 
-    public WarehouseViewModel Warehouse { get; }
+    public ObservableCollection<ProductListDto> Products { get; }
 
-    public ObservableCollection<ProductViewModel> Products
-    {
-        get => _products;
-        private set => SetProperty(ref _products, value);
-    }
-
-    public bool IsLoading
-    {
-        get => _isLoading;
-        private set => SetProperty(ref _isLoading, value);
-    }
-
-    public ICommand GoBackCommand { get; }
+    public ICommand GoBackCommand    { get; }
     public ICommand OpenProductCommand { get; }
 
     public WarehouseDetailPageViewModel(
-        WarehouseViewModel warehouse,
-        IWarehouseRepository repository,
+        WarehouseDetailDto warehouse,
         INavigationService navigation,
-        Func<ProductViewModel, ProductDetailPage> productDetailPageFactory)
+        Func<ProductListDto, ProductDetailPageViewModel> productVmFactory)
     {
-        Warehouse = warehouse;
-        _repository = repository;
-        _navigation = navigation;
-        _productDetailPageFactory = productDetailPageFactory;
+        Warehouse         = warehouse;
+        _navigation       = navigation;
+        _productVmFactory = productVmFactory;
+
+        Products = new ObservableCollection<ProductListDto>(warehouse.Products);
 
         GoBackCommand = new RelayCommand(() => _navigation.GoBack());
 
         OpenProductCommand = new RelayCommand(
             execute: param =>
             {
-                if (param is ProductViewModel pvm)
-                    _navigation.NavigateTo(_productDetailPageFactory(pvm));
+                if (param is ProductListDto dto)
+                {
+                    var vm   = _productVmFactory(dto);
+                    var page = new ProductDetailPage { DataContext = vm };
+                    _navigation.NavigateTo(page);
+                }
             });
-
-        LoadProducts();
-    }
-
-    private void LoadProducts()
-    {
-        if (!Warehouse.ProductsLoaded)
-        {
-            IsLoading = true;
-            _repository.LoadProductsForWarehouse(Warehouse);
-            IsLoading = false;
-        }
-        Products = new ObservableCollection<ProductViewModel>(Warehouse.Products);
     }
 }

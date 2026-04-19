@@ -9,11 +9,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ProductManager.Models\ProductManager.Models.csproj" />
-    <ProjectReference Include="..\ProductManager.ViewModels\ProductManager.ViewModels.csproj" />
+    <!-- UI layer depends ONLY on the Services layer (DTOs + interfaces).
+         No direct reference to Repositories or DbModels. -->
     <ProjectReference Include="..\ProductManager.Services\ProductManager.Services.csproj" />
   </ItemGroup>
 </Project>

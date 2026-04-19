@@ -1,8 +1,6 @@
-namespace ProductManager.Models.Enums;
+namespace ProductManager.Repositories.DbModels.Enums;
 
-/// <summary>
-/// Represents the category that a product belongs to.
-/// </summary>
+/// <summary>Категорія товару.</summary>
 public enum ProductCategory
 {
     Electronics,

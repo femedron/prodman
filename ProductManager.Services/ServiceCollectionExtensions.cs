@@ -1,27 +1,31 @@
 using Microsoft.Extensions.DependencyInjection;
+using ProductManager.Repositories.Repositories;
 using ProductManager.Services.Abstractions;
+using ProductManager.Services.Services;
 
 namespace ProductManager.Services;
 
 /// <summary>
-/// Extension methods for registering ProductManager services into an IoC container.
-/// Usage: services.AddProductManagerServices()
+/// Розширення для реєстрації всіх сервісів та репозиторіїв у IoC-контейнері.
 /// 
-/// Separating registration from the service classes themselves follows
-/// the Open/Closed Principle — adding a new service never requires
-/// touching existing code, only this file.
+/// Єдине місце, де конкретні типи зіставляються з інтерфейсами.
+/// Consumers (UI) не знають про конкретні реалізації — лише про інтерфейси.
+/// 
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Registers all ProductManager services.
-    /// <see cref="WarehouseRepository"/> is registered as a singleton because
-    /// FakeDataStore is a static in-memory store — one shared instance is correct.
-    /// In a later lab with a real DB context this would likely become Scoped.
-    /// </summary>
     public static IServiceCollection AddProductManagerServices(this IServiceCollection services)
     {
+        // ── Рівень репозиторіїв ───────────────────────────────────────────────
+        // Singleton: FakeStorage є статичним, тому один екземпляр репозиторію
+        // на весь час роботи застосунку є коректним.
         services.AddSingleton<IWarehouseRepository, WarehouseRepository>();
+        services.AddSingleton<IProductRepository,   ProductRepository>();
+
+        // ── Рівень сервісів ───────────────────────────────────────────────────
+        services.AddSingleton<IWarehouseService, WarehouseService>();
+        services.AddSingleton<IProductService,   ProductService>();
+
         return services;
     }
 }

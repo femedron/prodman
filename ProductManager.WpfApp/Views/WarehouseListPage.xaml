@@ -10,43 +10,35 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ── Page title ──────────────────────────────────────────── -->
         <TextBlock Grid.Row="0"
                    Text="Склади"
                    Style="{StaticResource PageTitleStyle}"/>
 
-        <!-- ── Subtitle / count ────────────────────────────────────── -->
-        <TextBlock Grid.Row="1"
-                   Margin="0,0,0,16"
+        <TextBlock Grid.Row="1" Margin="0,0,0,16"
                    FontSize="13"
                    Foreground="{StaticResource TextSecondaryBrush}">
             <Run Text="Знайдено складів: "/>
             <Run Text="{Binding Warehouses.Count, Mode=OneWay}"/>
         </TextBlock>
 
-        <!-- ── Loading indicator ───────────────────────────────────── -->
+        <!-- Loading indicator -->
         <TextBlock Grid.Row="2"
                    Text="Завантаження..."
                    FontSize="14"
                    Foreground="{StaticResource TextSecondaryBrush}"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"
-                   Visibility="{Binding IsLoading,
-                                Converter={StaticResource BoolToVisConverter}}"/>
+                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
 
-        <!-- ── Warehouse list ───────────────────────────────────────── -->
+        <!-- Warehouse list — binds to WarehouseListDto -->
         <ListBox Grid.Row="2"
                  ItemsSource="{Binding Warehouses}"
                  ItemContainerStyle="{StaticResource ListItemStyle}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 Background="Transparent"
-                 BorderThickness="0"
-                 Visibility="{Binding IsLoading,
-                              Converter={StaticResource InverseBoolToVisConverter}}">
+                 Background="Transparent" BorderThickness="0"
+                 Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisConverter}}">
 
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <!-- Clicking anywhere on the card fires OpenWarehouseCommand -->
                     <Grid>
                         <Grid.InputBindings>
                             <MouseBinding MouseAction="LeftClick"
@@ -58,9 +50,10 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left: icon + name + location -->
+                        <!-- Name + location -->
                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🏭" FontSize="18" Margin="0,0,10,0"
@@ -70,22 +63,28 @@
                                            Foreground="{StaticResource TextPrimaryBrush}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
-
                             <StackPanel Orientation="Horizontal" Margin="28,4,0,0">
                                 <TextBlock Text="📍" FontSize="12" Margin="0,0,4,0"/>
                                 <TextBlock Text="{Binding Location}"
-                                           Style="{StaticResource LabelStyle}"
-                                           FontSize="13"/>
+                                           Style="{StaticResource LabelStyle}" FontSize="13"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Right: "Відкрити →" arrow -->
-                        <TextBlock Grid.Column="1"
-                                   Text="›"
-                                   FontSize="28"
+                        <!-- ProductCount badge -->
+                        <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                            <TextBlock Text="ТОВАРІВ" Style="{StaticResource LabelStyle}"/>
+                            <Border Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding ProductCount}"
+                                           Foreground="{StaticResource PrimaryBrush}"
+                                           FontWeight="Bold" FontSize="14"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Arrow -->
+                        <TextBlock Grid.Column="2"
+                                   Text="›" FontSize="28"
                                    Foreground="{StaticResource PrimaryLightBrush}"
-                                   VerticalAlignment="Center"
-                                   Margin="12,0,0,0"/>
+                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
