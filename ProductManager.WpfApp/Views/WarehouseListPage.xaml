@@ -1,93 +1,167 @@
 <Page x:Class="ProductManager.WpfApp.Views.WarehouseListPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Title="Список складів">
+      Title="Список складів"
+      Loaded="Page_Loaded">
 
-    <Grid Margin="28,24">
+    <Grid Margin="28,20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0"
-                   Text="Склади"
-                   Style="{StaticResource PageTitleStyle}"/>
+        <!-- Title row -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Склади" Style="{StaticResource PageTitleStyle}" Margin="0"/>
+            <Button Grid.Column="1"
+                    Content="+ Додати склад"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding AddCommand}"
+                    VerticalAlignment="Center"/>
+        </Grid>
 
-        <TextBlock Grid.Row="1" Margin="0,0,0,16"
-                   FontSize="13"
-                   Foreground="{StaticResource TextSecondaryBrush}">
-            <Run Text="Знайдено складів: "/>
-            <Run Text="{Binding Warehouses.Count, Mode=OneWay}"/>
-        </TextBlock>
+        <!-- Toolbar: search + sort -->
+        <Grid Grid.Row="1" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- Loading indicator -->
-        <TextBlock Grid.Row="2"
-                   Text="Завантаження..."
-                   FontSize="14"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   VerticalAlignment="Center" HorizontalAlignment="Center"
-                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
+            <!-- Search box -->
+            <Border Grid.Column="0" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource SurfaceBrush}">
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         BorderThickness="0" Padding="10,7"
+                         FontSize="13" Background="Transparent"
+                         Tag="🔍  Пошук за назвою або локацією…">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <VisualBrush Stretch="None" AlignmentX="Left">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Text="🔍  Пошук…"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               Margin="10,0" FontSize="13"/>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </Border>
 
-        <!-- Warehouse list — binds to WarehouseListDto -->
-        <ListBox Grid.Row="2"
-                 ItemsSource="{Binding Warehouses}"
-                 ItemContainerStyle="{StaticResource ListItemStyle}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 Background="Transparent" BorderThickness="0"
-                 Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisConverter}}">
+            <!-- Sort picker -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <TextBlock Text="Сортувати:" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="13" Margin="0,0,8,0"/>
+                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                        CornerRadius="6" Background="{StaticResource SurfaceBrush}">
+                    <ComboBox ItemsSource="{Binding SortOptions}"
+                              SelectedValue="{Binding SortField}"
+                              BorderThickness="0" Padding="8,5"
+                              FontSize="13" Background="Transparent"/>
+                </Border>
+            </StackPanel>
+        </Grid>
 
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.InputBindings>
-                            <MouseBinding MouseAction="LeftClick"
-                                          Command="{Binding DataContext.OpenWarehouseCommand,
-                                                    RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                          CommandParameter="{Binding}"/>
-                        </Grid.InputBindings>
+        <!-- IsBusy overlay -->
+        <Grid Grid.Row="2">
+            <!-- List -->
+            <ListBox ItemsSource="{Binding Warehouses}"
+                     ItemContainerStyle="{StaticResource ListItemStyle}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     Background="Transparent" BorderThickness="0"
+                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolToVisConverter}}">
+                <!-- Hiding via IsEnabled keeps layout; we show spinner on top -->
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Name + location -->
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🏭" FontSize="18" Margin="0,0,10,0"
-                                           VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Name}"
-                                           FontSize="16" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           VerticalAlignment="Center"/>
+                            <!-- Name + location -->
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🏭" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="28,3,0,0">
+                                    <TextBlock Text="📍" FontSize="11" Margin="0,0,4,0"/>
+                                    <TextBlock Text="{Binding Location}"
+                                               Style="{StaticResource LabelStyle}" FontSize="12"/>
+                                </StackPanel>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="28,4,0,0">
-                                <TextBlock Text="📍" FontSize="12" Margin="0,0,4,0"/>
-                                <TextBlock Text="{Binding Location}"
-                                           Style="{StaticResource LabelStyle}" FontSize="13"/>
+
+                            <!-- Product count -->
+                            <StackPanel Grid.Column="1" Margin="10,0" VerticalAlignment="Center">
+                                <TextBlock Text="ТОВАРІВ" Style="{StaticResource LabelStyle}"/>
+                                <Border Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left" Margin="0,3,0,0">
+                                    <TextBlock Text="{Binding ProductCount}"
+                                               Foreground="{StaticResource PrimaryBrush}"
+                                               FontWeight="Bold" FontSize="13"/>
+                                </Border>
                             </StackPanel>
-                        </StackPanel>
 
-                        <!-- ProductCount badge -->
-                        <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                            <TextBlock Text="ТОВАРІВ" Style="{StaticResource LabelStyle}"/>
-                            <Border Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left" Margin="0,4,0,0">
-                                <TextBlock Text="{Binding ProductCount}"
-                                           Foreground="{StaticResource PrimaryBrush}"
-                                           FontWeight="Bold" FontSize="14"/>
-                            </Border>
-                        </StackPanel>
+                            <!-- View button -->
+                            <Button Grid.Column="2" Content="Відкрити"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Margin="6,0" Padding="10,5" FontSize="12"
+                                    Command="{Binding DataContext.OpenCommand,
+                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}"/>
 
-                        <!-- Arrow -->
-                        <TextBlock Grid.Column="2"
-                                   Text="›" FontSize="28"
-                                   Foreground="{StaticResource PrimaryLightBrush}"
-                                   VerticalAlignment="Center" Margin="12,0,0,0"/>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+                            <!-- Edit button -->
+                            <Button Grid.Column="3" Content="✏"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Margin="0,0,6,0" Padding="8,5" FontSize="13"
+                                    Command="{Binding DataContext.EditCommand,
+                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}"/>
+
+                            <!-- Delete button -->
+                            <Button Grid.Column="4" Content="🗑"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Padding="8,5" FontSize="13"
+                                    Command="{Binding DataContext.DeleteCommand,
+                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Busy spinner overlay -->
+            <Border Background="#80FFFFFF" CornerRadius="8"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⏳" FontSize="32" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Завантаження…"
+                               FontSize="14" Foreground="{StaticResource PrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

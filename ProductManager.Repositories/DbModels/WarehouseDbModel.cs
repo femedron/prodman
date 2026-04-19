@@ -8,6 +8,7 @@ namespace ProductManager.Repositories.DbModels;
 /// </summary>
 public class WarehouseDbModel
 {
+    /// <summary>Унікальний ідентифікатор. Не змінюється після створення.</summary>
     public Guid Id { get; }
 
     public string Name { get; set; }

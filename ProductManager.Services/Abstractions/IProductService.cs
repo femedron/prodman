@@ -2,12 +2,14 @@ using ProductManager.Services.Dto;
 
 namespace ProductManager.Services.Abstractions;
 
-/// <summary>
-/// Абстракція сервісу товарів.
-/// UI-шар взаємодіє з товарами виключно через цей інтерфейс.
-/// </summary>
+/// <summary>Async-сервіс товарів.</summary>
 public interface IProductService
 {
-    /// <summary>Повертає деталі конкретного товару або null.</summary>
-    ProductDetailDto? GetDetail(Guid id);
+    Task<ProductDetailDto?>          GetDetailAsync(Guid id);
+    Task<Guid>                       AddAsync(ProductFormDto form);
+    Task                             UpdateAsync(ProductFormDto form);
+    Task                             DeleteAsync(Guid id);
+
+    /// <summary>Список рядків enum ProductCategory для комбобоксів.</summary>
+    IEnumerable<string> GetCategories();
 }

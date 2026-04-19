@@ -14,6 +14,11 @@ public interface INavigationService
     bool CanGoBack { get; }
 }
 
+//public interface INavigatedTo
+//{
+//    Task OnNavigatedTo();
+//}
+
 /// <summary>
 /// Concrete WPF implementation backed by a <see cref="Frame"/> control.
 /// Registered as singleton in the IoC container.
@@ -37,6 +42,11 @@ public class NavigationService : INavigationService
         if (_frame is null)
             throw new InvalidOperationException("NavigationService frame is not set.");
         _frame.Navigate(page);
+
+        //if (page.DataContext is INavigatedTo vm)
+        //{
+        //    _ = vm.OnNavigatedTo();
+        //}
     }
 
     public void GoBack()

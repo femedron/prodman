@@ -9,6 +9,7 @@ public class ProductDetailDto
     public Guid    Id          { get; init; }
     public Guid    WarehouseId { get; init; }
 
+    /// <summary>Назва складу — додаткове поле, зручне для відображення без додаткового запиту.</summary>
     public string  WarehouseName { get; init; } = string.Empty;
 
     public string  Name        { get; init; } = string.Empty;

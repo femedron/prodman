@@ -9,9 +9,10 @@ namespace ProductManager.Repositories.DbModels;
 /// </summary>
 public class ProductDbModel
 {
+    /// <summary>Унікальний ідентифікатор. Не змінюється після створення.</summary>
     public Guid Id { get; }
 
-    /// <summary>FK на склад.</summary>
+    /// <summary>FK на склад. Не змінюється після створення.</summary>
     public Guid WarehouseId { get; }
 
     public string Name { get; set; }
@@ -34,6 +35,7 @@ public class ProductDbModel
         Description = description;
     }
 
+    /// <summary>Зручний конструктор з автогенерацією Guid.</summary>
     public ProductDbModel(
         Guid warehouseId, string name,
         int quantity, decimal unitPrice,

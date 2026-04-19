@@ -5,47 +5,43 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="28,24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
 
-            <!-- Loading state -->
-            <TextBlock Grid.Row="0"
-                       Text="Завантаження..."
-                       FontSize="16" Foreground="{StaticResource TextSecondaryBrush}"
-                       HorizontalAlignment="Center" Margin="0,40,0,0"
-                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
+            <!-- Busy overlay -->
+            <TextBlock Text="Завантаження…" FontSize="16"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center" Margin="0,60,0,0"
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}"/>
 
-            <!-- Content — visible only when Product is loaded -->
-            <Grid Grid.Row="0"
-                  Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <StackPanel Visibility="{Binding IsBusy, Converter={StaticResource InverseBoolToVisConverter}}">
 
-                <!-- Back + title -->
-                <Grid Grid.Row="0" Margin="0,0,0,20">
+                <!-- Back + title + action buttons -->
+                <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0"
-                            Content="← Назад"
+                    <Button Grid.Column="0" Content="← Назад"
                             Command="{Binding GoBackCommand}"
                             Style="{StaticResource OutlineButtonStyle}"
                             VerticalAlignment="Center" Margin="0,0,16,0"/>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding Product.Name}"
+                    <TextBlock Grid.Column="1" Text="{Binding Product.Name}"
                                Style="{StaticResource PageTitleStyle}"
                                VerticalAlignment="Center" Margin="0"/>
+                    <Button Grid.Column="2" Content="✏ Редагувати"
+                            Command="{Binding EditCommand}"
+                            Style="{StaticResource OutlineButtonStyle}"
+                            VerticalAlignment="Center"/>
+                    <Button Grid.Column="4" Content="🗑 Видалити"
+                            Command="{Binding DeleteCommand}"
+                            Style="{StaticResource OutlineButtonStyle}"
+                            VerticalAlignment="Center"/>
                 </Grid>
 
-                <!-- Category + warehouse badge row -->
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
+                <!-- Category + warehouse badges -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                     <Border Style="{StaticResource BadgeStyle}" Margin="0,0,8,0">
                         <TextBlock Text="{Binding Product.Category}"
                                    FontSize="13" FontWeight="SemiBold"
@@ -60,8 +56,8 @@
                     </Border>
                 </StackPanel>
 
-                <!-- Detail card — binds to ProductDetailDto -->
-                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <!-- Detail card -->
+                <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
 
                         <!-- IDs -->
@@ -73,47 +69,45 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="ID ТОВАРУ" Style="{StaticResource LabelStyle}"/>
                                 <TextBlock Text="{Binding Product.Id}"
-                                           Style="{StaticResource ValueStyle}" FontSize="12"
+                                           Style="{StaticResource ValueStyle}" FontSize="11"
                                            Foreground="{StaticResource TextSecondaryBrush}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="ID СКЛАДУ" Style="{StaticResource LabelStyle}"/>
                                 <TextBlock Text="{Binding Product.WarehouseId}"
-                                           Style="{StaticResource ValueStyle}" FontSize="12"
+                                           Style="{StaticResource ValueStyle}" FontSize="11"
                                            Foreground="{StaticResource TextSecondaryBrush}"/>
                             </StackPanel>
                         </Grid>
 
                         <Separator Background="{StaticResource BorderBrush}" Margin="0,12"/>
 
-                        <!-- Quantity / UnitPrice / TotalValue -->
+                        <!-- Numbers row -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="КІЛЬКІСТЬ" Style="{StaticResource LabelStyle}"/>
                                 <TextBlock Style="{StaticResource ValueStyle}" FontSize="22" FontWeight="Bold">
                                     <Run Text="{Binding Product.Quantity}"/><Run Text=" шт"/>
                                 </TextBlock>
                             </StackPanel>
-
                             <StackPanel Grid.Column="1" Margin="16,0">
-                                <TextBlock Text="ЦІНА ЗА ОДИНИЦЮ" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Text="ЦІНА ЗА ОД." Style="{StaticResource LabelStyle}"/>
                                 <TextBlock Style="{StaticResource ValueStyle}" FontSize="22" FontWeight="Bold">
-                                    <Run Text="{Binding Product.UnitPrice, StringFormat='{}{0:N2}'}"/><Run Text=" грн"/>
+                                    <Run Text="{Binding Product.UnitPrice, StringFormat='{}{0:N2}'}"/>
+                                    <Run Text=" грн"/>
                                 </TextBlock>
                             </StackPanel>
-
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="ЗАГАЛЬНА ВАРТІСТЬ" Style="{StaticResource LabelStyle}"/>
-                                <TextBlock Style="{StaticResource ValueStyle}"
-                                           FontSize="22" FontWeight="Bold"
+                                <TextBlock Style="{StaticResource ValueStyle}" FontSize="22" FontWeight="Bold"
                                            Foreground="{StaticResource PrimaryBrush}">
-                                    <Run Text="{Binding Product.TotalValue, StringFormat='{}{0:N2}'}"/><Run Text=" грн"/>
+                                    <Run Text="{Binding Product.TotalValue, StringFormat='{}{0:N2}'}"/>
+                                    <Run Text=" грн"/>
                                 </TextBlock>
                             </StackPanel>
                         </Grid>
@@ -121,14 +115,13 @@
                         <Separator Background="{StaticResource BorderBrush}" Margin="0,12"/>
 
                         <!-- Description -->
-                        <TextBlock Text="ОПИС / ТЕХНІЧНІ ХАРАКТЕРИСТИКИ"
-                                   Style="{StaticResource LabelStyle}"/>
+                        <TextBlock Text="ОПИС / ТЕХНІЧНІ ХАРАКТЕРИСТИКИ" Style="{StaticResource LabelStyle}"/>
                         <TextBlock Text="{Binding Product.Description}"
                                    Style="{StaticResource ValueStyle}"
                                    Margin="0,6,0,0" LineHeight="22"/>
                     </StackPanel>
                 </Border>
-            </Grid>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </Page>

@@ -3,61 +3,59 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Деталі складу">
 
-    <Grid Margin="28,24">
+    <Grid Margin="28,20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Back + title row -->
+        <!-- Back + title + edit -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0"
-                    Content="← Назад"
+            <Button Grid.Column="0" Content="← Назад"
                     Command="{Binding GoBackCommand}"
                     Style="{StaticResource OutlineButtonStyle}"
                     VerticalAlignment="Center" Margin="0,0,16,0"/>
-            <TextBlock Grid.Column="1"
-                       Text="{Binding Warehouse.Name}"
+            <TextBlock Grid.Column="1" Text="{Binding Warehouse.Name}"
                        Style="{StaticResource PageTitleStyle}"
                        VerticalAlignment="Center" Margin="0"/>
+            <Button Grid.Column="2" Content="✏ Редагувати склад"
+                    Command="{Binding EditWarehouseCommand}"
+                    Style="{StaticResource OutlineButtonStyle}"
+                    VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- Warehouse info card — binds to WarehouseDetailDto -->
-        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,20">
+        <!-- Warehouse info card -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="ІДЕНТИФІКАТОР" Style="{StaticResource LabelStyle}"/>
-                    <TextBlock Text="{Binding Warehouse.Id}"
-                               Style="{StaticResource ValueStyle}"
-                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="{Binding Warehouse.Id}" Style="{StaticResource ValueStyle}"
+                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
                 </StackPanel>
-
                 <StackPanel Grid.Column="1" Margin="16,0">
                     <TextBlock Text="ЛОКАЦІЯ" Style="{StaticResource LabelStyle}"/>
                     <Border Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left" Margin="0,4,0,0">
                         <TextBlock Text="{Binding Warehouse.Location}"
                                    Style="{StaticResource ValueStyle}"
-                                   Foreground="{StaticResource PrimaryBrush}"
-                                   FontWeight="SemiBold"/>
+                                   Foreground="{StaticResource PrimaryBrush}" FontWeight="SemiBold"/>
                     </Border>
                 </StackPanel>
-
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="ЗАГАЛЬНА ВАРТІСТЬ" Style="{StaticResource LabelStyle}"/>
-                    <TextBlock Style="{StaticResource ValueStyle}"
-                               FontSize="20" FontWeight="Bold"
+                    <TextBlock Style="{StaticResource ValueStyle}" FontSize="20" FontWeight="Bold"
                                Foreground="{StaticResource PrimaryBrush}">
                         <Run Text="{Binding Warehouse.TotalValue, StringFormat='{}{0:N2}'}"/>
                         <Run Text=" грн"/>
@@ -66,22 +64,57 @@
             </Grid>
         </Border>
 
-        <!-- Products section header -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Товари на складі"
-                       Style="{StaticResource SectionTitleStyle}" Margin="0,0,12,0"/>
-            <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Products.Count}"
-                           Foreground="{StaticResource PrimaryBrush}"
-                           FontWeight="Bold" FontSize="12"/>
+        <!-- Products toolbar -->
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Товари" Style="{StaticResource SectionTitleStyle}" Margin="0,0,10,0"/>
+                <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Products.Count}"
+                               Foreground="{StaticResource PrimaryBrush}"
+                               FontWeight="Bold" FontSize="12"/>
+                </Border>
+            </StackPanel>
+
+            <Border Grid.Column="1" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="6"
+                    Background="{StaticResource SurfaceBrush}" Margin="16,0,0,0">
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         BorderThickness="0" Padding="8,6"
+                         FontSize="12" Background="Transparent"/>
             </Border>
-        </StackPanel>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Сорт.:" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="12" Margin="0,0,6,0"/>
+                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                        CornerRadius="6" Background="{StaticResource SurfaceBrush}">
+                    <ComboBox ItemsSource="{Binding SortOptions}"
+                              SelectedValue="{Binding SortField}"
+                              BorderThickness="0" Padding="6,4" FontSize="12"/>
+                </Border>
+            </StackPanel>
+
+            <Button Grid.Column="5" Content="+ Додати товар"
+                    Command="{Binding AddProductCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Padding="12,7" FontSize="12"/>
+        </Grid>
 
         <!-- Empty state -->
         <TextBlock Grid.Row="3"
                    Text="На цьому складі ще немає товарів"
                    FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
-                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                   HorizontalAlignment="Center" Margin="0,20,0,0">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -94,65 +127,93 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <!-- Product list — binds to ProductListDto -->
-        <ListBox Grid.Row="3"
-                 ItemsSource="{Binding Products}"
-                 ItemContainerStyle="{StaticResource ListItemStyle}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 Background="Transparent" BorderThickness="0">
+        <!-- Products list + busy overlay -->
+        <Grid Grid.Row="4">
+            <ListBox ItemsSource="{Binding Products}"
+                     ItemContainerStyle="{StaticResource ListItemStyle}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     Background="Transparent" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.InputBindings>
-                            <MouseBinding MouseAction="LeftClick"
-                                          Command="{Binding DataContext.OpenProductCommand,
-                                                    RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                          CommandParameter="{Binding}"/>
-                        </Grid.InputBindings>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Style="{StaticResource BadgeStyle}"
+                                        HorizontalAlignment="Left" Margin="0,3,0,0">
+                                    <TextBlock Text="{Binding Category}" FontSize="10"
+                                               Foreground="{StaticResource PrimaryBrush}"/>
+                                </Border>
+                            </StackPanel>
 
-                        <!-- Name + category -->
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Name}"
-                                       FontSize="14" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextPrimaryBrush}"/>
-                            <Border Style="{StaticResource BadgeStyle}"
-                                    HorizontalAlignment="Left" Margin="0,4,0,0">
-                                <TextBlock Text="{Binding Category}"
-                                           FontSize="11" Foreground="{StaticResource PrimaryBrush}"/>
-                            </Border>
-                        </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="10,0" VerticalAlignment="Center">
+                                <TextBlock Text="КІЛ." Style="{StaticResource LabelStyle}"/>
+                                <TextBlock FontSize="13">
+                                    <Run Text="{Binding Quantity}"/><Run Text=" шт"/>
+                                </TextBlock>
+                            </StackPanel>
 
-                        <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                            <TextBlock Text="КІЛЬКІСТЬ" Style="{StaticResource LabelStyle}"/>
-                            <TextBlock FontSize="14" Foreground="{StaticResource TextPrimaryBrush}">
-                                <Run Text="{Binding Quantity}"/><Run Text=" шт"/>
-                            </TextBlock>
-                        </StackPanel>
+                            <StackPanel Grid.Column="2" Margin="10,0" VerticalAlignment="Center">
+                                <TextBlock Text="ЦІНА" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock FontSize="13">
+                                    <Run Text="{Binding UnitPrice, StringFormat='{}{0:N2}'}"/>
+                                    <Run Text=" грн"/>
+                                </TextBlock>
+                            </StackPanel>
 
-                        <StackPanel Grid.Column="2" Margin="16,0" VerticalAlignment="Center">
-                            <TextBlock Text="ЦІНА/ШТ" Style="{StaticResource LabelStyle}"/>
-                            <TextBlock FontSize="14" Foreground="{StaticResource TextPrimaryBrush}">
-                                <Run Text="{Binding UnitPrice, StringFormat='{}{0:N2}'}"/><Run Text=" грн"/>
-                            </TextBlock>
-                        </StackPanel>
+                            <StackPanel Grid.Column="3" Margin="10,0" VerticalAlignment="Center">
+                                <TextBlock Text="ЗАГАЛОМ" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock FontSize="13" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryBrush}">
+                                    <Run Text="{Binding TotalValue, StringFormat='{}{0:N2}'}"/>
+                                    <Run Text=" грн"/>
+                                </TextBlock>
+                            </StackPanel>
 
-                        <StackPanel Grid.Column="3" Margin="16,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="ЗАГАЛОМ" Style="{StaticResource LabelStyle}"/>
-                            <TextBlock FontSize="14" FontWeight="Bold"
-                                       Foreground="{StaticResource PrimaryBrush}">
-                                <Run Text="{Binding TotalValue, StringFormat='{}{0:N2}'}"/><Run Text=" грн  ›"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+                            <Button Grid.Column="4" Content="Детальніше"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Margin="6,0" Padding="8,4" FontSize="11"
+                                    Command="{Binding DataContext.OpenProductCommand,
+                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                    CommandParameter="{Binding}"/>
+
+                            <StackPanel Grid.Column="5" Orientation="Horizontal">
+                                <Button Content="✏" Style="{StaticResource OutlineButtonStyle}"
+                                        Margin="0,0,4,0" Padding="6,4" FontSize="12"
+                                        Command="{Binding DataContext.EditProductCommand,
+                                                  RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        CommandParameter="{Binding}"/>
+                                <Button Content="🗑" Style="{StaticResource OutlineButtonStyle}"
+                                        Padding="6,4" FontSize="12"
+                                        Command="{Binding DataContext.DeleteProductCommand,
+                                                  RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Busy overlay -->
+            <Border Background="#80FFFFFF" CornerRadius="8"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⏳" FontSize="32" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Завантаження…" FontSize="14"
+                               Foreground="{StaticResource PrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

@@ -4,22 +4,25 @@ using ProductManager.Services.Abstractions;
 using ProductManager.Services.Dto;
 using ProductManager.WpfApp.Infrastructure;
 using ProductManager.WpfApp.Views;
+using ProductManager.WpfApp.Views.Dialogs;
 
 namespace ProductManager.WpfApp.ViewModels;
 
 /// <summary>
-/// ViewModel сторінки списку складів.
-/// Взаємодіє виключно з <see cref="IWarehouseService"/> — не знає про репозиторії
-/// або DbModels.
+/// ViewModel головної сторінки: список складів + фільтр + сортування + CRUD.
 /// </summary>
-public class WarehouseListPageViewModel : ViewModelBase
+public class WarehouseListPageViewModel : ViewModelBase //, INavigatedTo
 {
-    private readonly IWarehouseService _warehouseService;
-    private readonly INavigationService _navigation;
+    private readonly IWarehouseService _service;
+    private readonly INavigationService _nav;
     private readonly Func<WarehouseDetailDto, WarehouseDetailPage> _detailPageFactory;
 
     private ObservableCollection<WarehouseListDto> _warehouses = new();
-    private bool _isLoading;
+    private string _searchText = string.Empty;
+    private string _sortField  = "Name";
+    private bool   _isBusy;
+
+
 
     public ObservableCollection<WarehouseListDto> Warehouses
     {
@@ -27,45 +30,150 @@ public class WarehouseListPageViewModel : ViewModelBase
         private set => SetProperty(ref _warehouses, value);
     }
 
-    public bool IsLoading
+    //public async Task OnNavigatedTo()
+    //{
+    //    await LoadAsync();
+    //}
+
+    public string SearchText
     {
-        get => _isLoading;
-        private set => SetProperty(ref _isLoading, value);
+        get => _searchText;
+        set { SetProperty(ref _searchText, value); _ = ApplyFilterAsync(); }
     }
 
-    /// <summary>Command: navigate to detail page for the selected warehouse.</summary>
-    public ICommand OpenWarehouseCommand { get; }
+    public string SortField
+    {
+        get => _sortField;
+        set { SetProperty(ref _sortField, value); _ = ApplyFilterAsync(); }
+    }
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        private set => SetProperty(ref _isBusy, value);
+    }
+
+    public IEnumerable<string> SortOptions { get; } = new[] { "Name", "Location", "ProductCount" };
+
+    public ICommand LoadCommand      { get; }
+    public ICommand OpenCommand      { get; }
+    public ICommand AddCommand       { get; }
+    public ICommand EditCommand      { get; }
+    public ICommand DeleteCommand    { get; }
+
+    // Raw list before filter — refreshed on every load
+    private List<WarehouseListDto> _allWarehouses = new();
 
     public WarehouseListPageViewModel(
-        IWarehouseService warehouseService,
-        INavigationService navigation,
+        IWarehouseService service,
+        INavigationService nav,
         Func<WarehouseDetailDto, WarehouseDetailPage> detailPageFactory)
     {
-        _warehouseService  = warehouseService;
-        _navigation        = navigation;
+        _service           = service;
+        _nav               = nav;
         _detailPageFactory = detailPageFactory;
 
-        OpenWarehouseCommand = new RelayCommand(
-            execute:    param => { if (param is WarehouseListDto dto) OpenWarehouse(dto); },
-            canExecute: _     => !IsLoading);
-
-        LoadWarehouses();
+        LoadCommand   = new AsyncRelayCommand(LoadAsync);
+        OpenCommand   = new AsyncRelayCommand(async p => await OpenAsync(p as WarehouseListDto), _ => !IsBusy);
+        AddCommand    = new AsyncRelayCommand(AddAsync,  () => !IsBusy);
+        EditCommand   = new AsyncRelayCommand(async p => await EditAsync(p as WarehouseListDto), _ => !IsBusy);
+        DeleteCommand = new AsyncRelayCommand(async p => await DeleteAsync(p as WarehouseListDto), _ => !IsBusy);
     }
 
-    private void LoadWarehouses()
+    public async Task LoadAsync()
     {
-        IsLoading = true;
-        var items = _warehouseService.GetAll();
-        Warehouses = new ObservableCollection<WarehouseListDto>(items);
-        IsLoading = false;
+        IsBusy = true;
+        try
+        {
+            _allWarehouses = (await _service.GetAllAsync()).ToList();
+            await ApplyFilterAsync();
+        }
+        finally { IsBusy = false; }
     }
 
-    private void OpenWarehouse(WarehouseListDto listDto)
+    private Task ApplyFilterAsync()
     {
-        // Завантажуємо повні деталі складу (разом з товарами) через сервіс.
-        var detail = _warehouseService.GetDetail(listDto.Id);
-        if (detail is null) return;
+        var q = _allWarehouses.AsEnumerable();
 
-        _navigation.NavigateTo(_detailPageFactory(detail));
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var s = SearchText.Trim().ToLower();
+            q = q.Where(w => w.Name.ToLower().Contains(s)
+                           || w.Location.ToLower().Contains(s));
+        }
+
+        q = SortField switch
+        {
+            "Location"     => q.OrderBy(w => w.Location),
+            "ProductCount" => q.OrderByDescending(w => w.ProductCount),
+            _              => q.OrderBy(w => w.Name)
+        };
+
+        Warehouses = new ObservableCollection<WarehouseListDto>(q);
+        return Task.CompletedTask;
+    }
+
+    private async Task OpenAsync(WarehouseListDto? dto)
+    {
+        if (dto is null) return;
+        IsBusy = true;
+        try
+        {
+            var detail = await _service.GetDetailAsync(dto.Id);
+            if (detail is null) return;
+            _nav.NavigateTo(_detailPageFactory(detail));
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task AddAsync()
+    {
+        var locations = _service.GetLocations().ToList();
+        var dialog = new WarehouseFormDialog(null, locations);
+        if (dialog.ShowDialog() != true) return;
+
+        IsBusy = true;
+        try
+        {
+            await _service.AddAsync(dialog.Result!);
+            await LoadAsync();
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task EditAsync(WarehouseListDto? dto)
+    {
+        if (dto is null) return;
+        var locations = _service.GetLocations().ToList();
+        var current   = new WarehouseFormDto { Id = dto.Id, Name = dto.Name, Location = dto.Location };
+        var dialog    = new WarehouseFormDialog(current, locations);
+        if (dialog.ShowDialog() != true) return;
+
+        IsBusy = true;
+        try
+        {
+            await _service.UpdateAsync(dialog.Result!);
+            await LoadAsync();
+        }
+        finally { IsBusy = false; }
+    }
+
+    private async Task DeleteAsync(WarehouseListDto? dto)
+    {
+        if (dto is null) return;
+        var confirm = System.Windows.MessageBox.Show(
+            $"Видалити склад «{dto.Name}»?\nВсі товари цього складу також будуть видалені.",
+            "Підтвердження видалення",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+        if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
+        IsBusy = true;
+        try
+        {
+            await _service.DeleteAsync(dto.Id);
+            await LoadAsync();
+        }
+        finally { IsBusy = false; }
     }
 }

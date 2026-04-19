@@ -1,0 +1,88 @@
+<Window x:Class="ProductManager.WpfApp.Views.Dialogs.ProductFormDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Товар"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+
+            <TextBlock x:Name="TitleText"
+                       Style="{StaticResource PageTitleStyle}"
+                       FontSize="18" Margin="0,0,0,20"/>
+
+            <!-- Name -->
+            <TextBlock Text="НАЗВА ТОВАРУ" Style="{StaticResource LabelStyle}" Margin="0,0,0,4"/>
+            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="4" Background="{StaticResource SurfaceBrush}" Margin="0,0,0,14">
+                <TextBox x:Name="NameBox" BorderThickness="0"
+                         Padding="10,8" FontSize="14" Background="Transparent"/>
+            </Border>
+
+            <!-- Category -->
+            <TextBlock Text="КАТЕГОРІЯ" Style="{StaticResource LabelStyle}" Margin="0,0,0,4"/>
+            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="4" Background="{StaticResource SurfaceBrush}" Margin="0,0,0,14">
+                <ComboBox x:Name="CategoryBox" BorderThickness="0"
+                          Padding="8,6" FontSize="14" Background="Transparent"/>
+            </Border>
+
+            <!-- Quantity + UnitPrice side by side -->
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="КІЛЬКІСТЬ (шт)" Style="{StaticResource LabelStyle}" Margin="0,0,0,4"/>
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="4" Background="{StaticResource SurfaceBrush}">
+                        <TextBox x:Name="QuantityBox" BorderThickness="0"
+                                 Padding="10,8" FontSize="14" Background="Transparent"/>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="ЦІНА ЗА ОД. (грн)" Style="{StaticResource LabelStyle}" Margin="0,0,0,4"/>
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="4" Background="{StaticResource SurfaceBrush}">
+                        <TextBox x:Name="UnitPriceBox" BorderThickness="0"
+                                 Padding="10,8" FontSize="14" Background="Transparent"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- Description -->
+            <TextBlock Text="ОПИС / ХАРАКТЕРИСТИКИ" Style="{StaticResource LabelStyle}" Margin="0,0,0,4"/>
+            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="4" Background="{StaticResource SurfaceBrush}" Margin="0,0,0,24">
+                <TextBox x:Name="DescriptionBox" BorderThickness="0"
+                         Padding="10,8" FontSize="14" Background="Transparent"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="70" MaxHeight="120"/>
+            </Border>
+
+            <!-- Validation -->
+            <TextBlock x:Name="ErrorText"
+                       Foreground="Red" FontSize="12"
+                       Margin="0,0,0,12" Visibility="Collapsed"/>
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Скасувати"
+                        Style="{StaticResource OutlineButtonStyle}"
+                        Margin="0,0,10,0"
+                        Click="CancelClick"/>
+                <Button Content="Зберегти"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="SaveClick"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>

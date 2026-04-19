@@ -11,8 +11,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <!-- UI layer depends ONLY on the Services layer (DTOs + interfaces).
-         No direct reference to Repositories or DbModels. -->
     <ProjectReference Include="..\ProductManager.Services\ProductManager.Services.csproj" />
   </ItemGroup>
 </Project>

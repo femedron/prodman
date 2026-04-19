@@ -3,14 +3,16 @@ using ProductManager.Services.Dto;
 namespace ProductManager.Services.Abstractions;
 
 /// <summary>
-/// Абстракція сервісу складів.
-/// UI-шар взаємодіє з даними виключно через цей інтерфейс.
+/// Async-сервіс складів. UI взаємодіє виключно через цей інтерфейс.
 /// </summary>
 public interface IWarehouseService
 {
-    /// <summary>Повертає всі склади у форматі для списку.</summary>
-    IEnumerable<WarehouseListDto> GetAll();
+    Task<IEnumerable<WarehouseListDto>>      GetAllAsync();
+    Task<WarehouseDetailDto?>                GetDetailAsync(Guid id);
+    Task<Guid>                               AddAsync(WarehouseFormDto form);
+    Task                                     UpdateAsync(WarehouseFormDto form);
+    Task                                     DeleteAsync(Guid id);
 
-    /// <summary>Повертає деталі складу разом зі списком його товарів.</summary>
-    WarehouseDetailDto? GetDetail(Guid id);
+    /// <summary>Список рядків enum WarehouseLocation для комбобоксів.</summary>
+    IEnumerable<string> GetLocations();
 }
